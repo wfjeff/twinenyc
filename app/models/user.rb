@@ -9,9 +9,13 @@ class User < ActiveRecord::Base
   has_many :readings
   has_one :twine
   has_many :sensors
+  belongs_to :building
 
   has_many :collaborations, dependent: :destroy
   has_many :collaborators, through: :collaborations
+
+  belongs_to :unit
+  delegate :building, to: :unit, allow_nil: true
 
   validates :first_name, :length => { minimum: 2 }
   validates :last_name, :length => { minimum: 2 }
@@ -34,6 +38,8 @@ class User < ActiveRecord::Base
   include Regulatable::InstanceMethods
 
   PERMISSIONS = {
+    super_user: 0,
+    team_member: 10,
     admin: 25,
     lawyer: 50,
     user: 100
@@ -196,12 +202,20 @@ class User < ActiveRecord::Base
     collaborations.where(id: collaboration_id)
   end
 
+  def team_member?
+    permissions <= PERMISSIONS[:team_member]
+  end
+
   def admin?
-    permissions <= 25
+    permissions <= PERMISSIONS[:admin]
   end
 
   def lawyer?
-    permissions <= 50
+    permissions <= PERMISSIONS[:lawyer]
+  end
+
+  def list_permission_level_and_lower
+    PERMISSIONS.select { |_k, v| v >= permissions }
   end
 
   def create_search_names

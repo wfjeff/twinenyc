@@ -11,7 +11,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160525052314) do
+ActiveRecord::Schema.define(version: 20160708230212) do
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
 
   create_table "articles", force: true do |t|
     t.string   "title"
@@ -33,7 +36,11 @@ ActiveRecord::Schema.define(version: 20160525052314) do
     t.string   "bbl"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.decimal  "longitude"
+    t.decimal  "latitude"
   end
+
+  add_index "buildings", ["street_address", "zip_code"], name: "index_buildings_on_street_address_and_zip_code", unique: true, using: :btree
 
   create_table "canonical_temperatures", force: true do |t|
     t.integer  "zip_code"
@@ -92,22 +99,34 @@ ActiveRecord::Schema.define(version: 20160525052314) do
     t.string  "email"
   end
 
+  create_table "units", force: true do |t|
+    t.integer  "building_id"
+    t.string   "name"
+    t.integer  "floor"
+    t.text     "description"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "units", ["building_id", "name"], name: "index_units_on_building_id_and_name", unique: true, using: :btree
+  add_index "units", ["building_id"], name: "index_units_on_building_id", using: :btree
+
   create_table "users", force: true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "address"
     t.string   "first_name"
     t.string   "last_name"
-    t.string   "encrypted_password",     default: "",  null: false
+    t.string   "encrypted_password",     default: "",    null: false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
-    t.integer  "sign_in_count",          default: 0,   null: false
+    t.integer  "sign_in_count",          default: 0,     null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
     t.string   "current_sign_in_ip"
     t.string   "last_sign_in_ip"
-    t.string   "email",                  default: "",  null: false
+    t.string   "email",                  default: "",    null: false
     t.integer  "permissions",            default: 100
     t.string   "search_first_name"
     t.string   "search_last_name"
@@ -115,11 +134,13 @@ ActiveRecord::Schema.define(version: 20160525052314) do
     t.string   "sensor_codes_string"
     t.string   "phone_number"
     t.string   "apartment"
-    t.boolean  "dummy"
+    t.boolean  "dummy",                  default: false, null: false
     t.integer  "building_id"
+    t.integer  "unit_id"
   end
 
   add_index "users", ["building_id"], name: "index_users_on_building_id", using: :btree
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
+  add_index "users", ["unit_id"], name: "index_users_on_unit_id", using: :btree
 
 end

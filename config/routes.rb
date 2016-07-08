@@ -18,7 +18,7 @@ Twinenyc::Application.routes.draw do
     end
   end
 
-  post 'readings' => 'readings#create'
+  resources :readings, only: [:index, :create]
 
   get 'addresses' => 'users#addresses'
   get 'users/:id/download' => 'users#download_pdf', as: :pdf_download
@@ -48,6 +48,10 @@ Twinenyc::Application.routes.draw do
   get "thankyou" => "welcome#thankyou"
   get "video" => "welcome#video"
   get "vote-for-us" => "welcome#nycbigapps"
+
+  namespace :admin do
+    resources :buildings
+  end
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
