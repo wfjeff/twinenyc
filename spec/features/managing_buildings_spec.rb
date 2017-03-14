@@ -18,21 +18,28 @@ feature "Building management" do
 
   before { login_as_team_member }
 
-  scenario "Viewing index" do
+  scenario "Viewing index of all buildings" do
     building
     building_2 = create(:building, street_address: "100 Another Street")
 
     visit "/"
     click_link "Buildings"
 
-    expect(page).to have_content(building.street_address)
-    expect(page).to have_content(building_2.street_address)
+    expect(page).to have_content(building.street_and_zip)
+    expect(page).to have_content(building_2.street_and_zip)
+  end
+
+  scenario "Viewing all units associated with a building" do
+    building
+    visit admin_buildings_path(building)
+    click_link building.street_and_zip
+    expect(current_path).to eq(admin_building_units_path(building))
   end
 
   scenario "Creating a new building" do
     visit "/"
     click_link "Buildings"
-    click_link "Add Building"
+    click_link "Create Building"
 
     fill_in "Property name", with: "New apartment"
     fill_in "Street address", with: "123 New St"
@@ -82,5 +89,18 @@ feature "Building management" do
     expect(page).to have_content("Save failed due to errors.")
     expect(page).to have_content("can't be blank")
     expect(building.reload.street_address).to_not be_blank
+  end
+
+  scenario "Deleting a building" do
+    building
+    visit admin_buildings_path
+
+    within(:css, "li#building-#{building.id}") do
+      find("a.remove-user-link").click
+    end
+
+    expect(current_path).to eq(admin_buildings_path)
+    expect(page).to have_content("Building deleted.")
+    expect { building.reload }.to raise_error { ActiveRecord::RecordNotFound }
   end
 end
